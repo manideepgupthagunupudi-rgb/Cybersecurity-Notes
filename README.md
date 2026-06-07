@@ -1,2 +1,2 @@
 # Cybersecurity-Notes
-Here i upload all the notes that i use for myself and it can be useful for you too
+This repository serves as a centralized, living knowledge base for cybersecurity operations, research, and study. It aggregates essential cheat sheets, tool configurations, exploitation methodologies, and defensive strategies used in daily tasks.
