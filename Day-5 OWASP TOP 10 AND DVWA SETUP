@@ -1,0 +1,146 @@
+Day 5 — OWASP Top 10 (2025) + DVWA Setup
+Date: June 2026
+Focus: OWASP Top 10 2025, SQL Injection concept, DVWA lab setup
+
+OWASP Top 10 (2025) — Updated January 2026
+
+Two NEW categories added in 2025 vs 2021: A03 and A10.
+Most freshers still quote 2021 — knowing 2025 makes you stand out in interviews.
+
+
+A01:2025 — Broken Access Control
+What it is: Users can access data or actions they are not supposed to.
+Example:
+Your profile URL: mybank.com/profile?user_id=1001
+You change to:    mybank.com/profile?user_id=1002
+→ You can see another person's account
+India context: Found in Indian government portals — changing ID in URL exposed other citizens' Aadhaar-linked data.
+Fix: Server-side authorization checks on every request.
+
+A02:2025 — Security Misconfiguration
+What it is: Default settings left unchanged, exposed admin panels, error messages revealing too much info.
+Example:
+Tomcat Manager exposed at /manager/html
+Default credentials admin:admin still active
+→ Attacker deploys malicious WAR file → Remote Code Execution
+My VIT-AP report connection: Tomcat Manager, Host Manager, and Server Status pages were all publicly exposed — this is A02.
+Fix: Disable unused features, change default credentials, restrict admin panels by IP.
+
+A03:2025 — Software Supply Chain Failures ⭐ NEW
+What it is: Risks introduced by third-party libraries, build tools, and CI/CD pipelines.
+Example:
+Developer uses popular npm package
+Attacker compromises that package
+Every app using it gets infected automatically
+→ Developer did nothing wrong but their app is compromised
+Famous case: SolarWinds attack — 18,000 organizations infected through a compromised software update.
+Fix: Verify package integrity, use lock files, scan dependencies regularly.
+
+A04:2025 — Cryptographic Failures
+What it is: Weak or missing encryption — HTTP instead of HTTPS, weak password hashing.
+Example:
+Password stored as MD5: 5f4dcc3b5aa765d61d8327deb882cf99
+→ Cracks in seconds at crackstation.net
+
+Website uses HTTP on login page
+→ Anyone on same WiFi can see username + password in Wireshark
+Fix: Use HTTPS everywhere, bcrypt for passwords, TLS 1.3.
+
+A05:2025 — Injection
+What it is: User input gets executed as code by the server.
+SQL Injection example:
+sqlNormal:   SELECT * FROM users WHERE username='mani' AND password='pass'
+Attack:   username = admin' --
+Result:   SELECT * FROM users WHERE username='admin' --' AND password='pass'
+          Password check skipped → logged in as admin
+XSS example:
+html<script>alert('XSS')</script>
+→ Executes in victim's browser, can steal cookies
+Command Injection example:
+Input: 8.8.8.8; cat /etc/passwd
+→ Server runs ping AND dumps all user accounts
+Fix: Parameterized queries for SQLi, output encoding for XSS.
+
+A06:2025 — Insecure Design
+What it is: The flaw is in the design/architecture, not the code.
+Example:
+Forgot Password sends actual password in email
+→ Means passwords stored in plain text
+→ Entire feature needs to be redesigned from scratch
+OTP example:
+4-digit OTP with no lockout
+Attacker tries all 10,000 combinations automatically
+→ Design failure, not a coding bug
+Fix: Threat modeling during design phase, rate limiting, account lockout.
+
+A07:2025 — Authentication Failures
+What it is: Weak login systems — easy to brute force, bypass, or steal sessions.
+Example:
+No account lockout → attacker tries millions of passwords
+Weak session token: session_id=12345 → guess 12346 = next user's account
+No MFA on admin → password leak = instant account takeover
+Fix: MFA, account lockout after 5 attempts, strong random session tokens.
+
+A08:2025 — Data Integrity Failures
+What it is: Application trusts data it receives without verifying it hasn't been tampered with.
+Example:
+HTTP request: item=laptop&price=50000
+Intercepted with Burp Suite → changed to: item=laptop&price=1
+Server doesn't verify price from its own database → laptop bought for ₹1
+Fix: Always verify critical values server-side, use digital signatures for updates.
+
+A09:2025 — Security Logging Failures
+What it is: No logs = attacks go undetected.
+Example:
+Attacker tries 50,000 login attempts over 3 days
+No logs → no alerts → nobody notices
+Attacker cracks account → stays inside for months undetected
+Average attacker dwell time in enterprise: 200+ days
+Blue team connection: SOC analysts use SIEM tools like Splunk to detect these patterns in logs.
+Fix: Log all authentication events, failed logins, admin actions. Alert on anomalies.
+
+A10:2025 — Mishandling of Exceptional Conditions ⭐ NEW
+What it is: App crashes on unexpected input and reveals sensitive information.
+Example:
+Input: Age = "abc" (letter instead of number)
+App crashes and shows:
+TypeError at /users/profile
+Database: mysql://admin:password123@localhost/users
+File: /var/www/html/profile.php line 34
+→ Exposed DB password and internal file structure from one error
+Fix: Generic error messages to users, detailed errors only in server logs.
+
+Quick Reference Table
+#NameOne LineFixA01Broken Access ControlSeeing others' data by changing IDsServer-side auth checksA02Security MisconfigurationUnlocked doors — default settingsHarden everythingA03 🆕Supply Chain FailuresInfected library you trustedVerify dependenciesA04Cryptographic FailuresNo HTTPS, weak password storageHTTPS + bcryptA05InjectionYour input runs as codeParameterized queriesA06Insecure DesignBad idea from the startThreat modelingA07Authentication FailuresWeak login — brute forceableMFA + lockoutA08Data Integrity FailuresTampered data trusted blindlyServer-side validationA09Logging FailuresAttack happened, nobody noticedSIEM + log everythingA10 🆕Exceptional ConditionsCrashes revealing sensitive infoGeneric error messages
+
+My VIT-AP Report Mapped to OWASP
+FindingOWASP CategoryTomcat Manager exposedA02 Security MisconfigurationPUT/DELETE methods enabledA01 Broken Access ControlMissing HSTS headerA04 Cryptographic FailuresMissing X-Frame-OptionsA02 Security MisconfigurationServer fingerprinting via faviconA02 Security Misconfiguration
+
+SQL Injection — Concept
+How it works
+sql-- Normal query
+SELECT * FROM users WHERE username='mani' AND password='pass'
+
+-- Attacker input: admin' --
+SELECT * FROM users WHERE username='admin' --' AND password='pass'
+-- Everything after -- is commented out
+-- Password check is skipped
+-- Logged in as admin
+Types of SQL Injection
+TypeHow it worksUnion-basedUNION SELECT to extract data from other tablesError-basedTrigger SQL errors that reveal dataBlind (Boolean)Ask true/false questions, infer data from responsesTime-based BlindUse SLEEP() to infer data based on response time
+The Fix — Parameterized Queries
+python# Vulnerable
+query = "SELECT * FROM users WHERE username='" + username + "'"
+
+# Secure
+query = "SELECT * FROM users WHERE username = ?"
+cursor.execute(query, (username,))
+
+DVWA Setup — Completed
+
+Installed Docker on Kali Linux
+Pulled vulnerables/web-dvwa image
+Running on http://127.0.0.1:8080
+Database initialized
+Security level set to: Low
+
