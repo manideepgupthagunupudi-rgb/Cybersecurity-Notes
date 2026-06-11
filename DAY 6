@@ -1,0 +1,29 @@
+# DVWA Practice — Vulnerability Findings
+
+## Environment
+- Target: DVWA (Damn Vulnerable Web Application)
+- Security Level: Low
+- Date: June 2026
+
+## Finding 1 — SQL Injection
+- Payload: 1' UNION SELECT user, password FROM users --+
+- Impact: Full database dump — all usernames and password hashes
+- OWASP: A05:2025 Injection
+- Fix: Parameterized queries
+
+## Finding 2 — Reflected XSS
+- Payload: <script>alert(document.cookie)</script>
+- Impact: Session cookie exposed — account takeover possible
+- OWASP: A05:2025 Injection
+- Fix: HTML output encoding
+
+## Finding 3 — Stored XSS
+- Payload: <script>alert('Stored XSS')</script>
+- Impact: Persistent — fires for every visitor including admins
+- OWASP: A05:2025 Injection
+- Fix: Input validation + output encoding
+
+## MD5 Hash Cracking
+- Hashes cracked instantly using crackstation.net
+- Proves MD5 is unsuitable for password storage
+- Fix: Use bcrypt or Argon2
