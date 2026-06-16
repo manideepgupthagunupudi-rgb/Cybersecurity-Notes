@@ -1,0 +1,22 @@
+## Day 7 — Command Injection + CSRF
+
+### Command Injection
+- User input executed as OS command
+- Separators: ; && || | backtick
+- Payload: 127.0.0.1; cat /etc/passwd
+- Web shell: <?php system($_GET["cmd"]); ?>
+- Fix: input validation + escapeshellarg()
+
+### CSRF
+- Forces authenticated user to make unwanted request
+- One-way attack — attacker can't read response
+- Example: hidden img tag triggers bank transfer
+- Fix: CSRF tokens on every state-changing request
+
+### Difference: XSS vs CSRF
+- XSS: attacker injects code that runs in victim's browser
+- CSRF: attacker tricks victim's browser into making requests
+
+### PortSwigger
+- Started SQL injection path
+- Completed Lab 1
