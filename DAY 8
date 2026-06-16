@@ -1,0 +1,29 @@
+## Day 8 — Broken Access Control + IDOR + Burp Suite
+
+### Broken Access Control — OWASP A01:2025
+- #1 most common vulnerability — found in 94% of apps
+- Authentication = who you are
+- Authorization = what you're allowed to do
+- BAC = authentication works but authorization fails
+
+### IDOR Types
+- Horizontal: access other users' data at same privilege level
+- Vertical: access higher privilege data (admin)
+- Blind: action succeeds on someone else's object with no visible response
+
+### IDOR Testing Method
+1. Find any parameter with an ID (user_id, order_id, file_id)
+2. Intercept in Burp Suite
+3. Change the ID to another value
+4. If different user's data returns = IDOR confirmed
+
+### Burp Suite Tools Learned
+- Proxy: intercept and modify live requests
+- Repeater: resend modified requests without browser
+- Intruder: automate brute force attacks
+- Decoder: encode/decode URL, Base64, HTML
+
+### Fix for IDOR
+- Server-side ownership check on every request
+- Verify logged-in user owns the requested resource
+- Never trust client-supplied IDs without verification
